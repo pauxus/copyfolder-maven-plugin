@@ -1,0 +1,38 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.blackbuild.maven.plugins.it</groupId>
+	<artifactId>copyfolder-test</artifactId>
+	<version>testing</version>
+
+	<description>
+        Test the myproject-maven-plugin:do-something goal.
+    </description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.blackbuild.maven.plugins</groupId>
+				<artifactId>copyfolder-maven-plugin</artifactId>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>provide</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<folder>target/classes/sub1</folder>
+								</resource>
+								<resource>
+									<folder>target/classes/sub2</folder>
+									<classifier>namedsub</classifier>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
