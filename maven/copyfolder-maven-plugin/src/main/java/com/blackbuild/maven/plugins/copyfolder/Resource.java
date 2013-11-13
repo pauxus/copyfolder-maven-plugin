@@ -21,7 +21,7 @@ public class Resource {
     
     File folder;
     
-    String classfier;
+    String classifier;
 
     public File getFolder() {
         return this.folder;
@@ -31,12 +31,12 @@ public class Resource {
         this.folder = folder;
     }
 
-    public String getClassfier() {
-        return this.classfier;
+    public String getClassifier() {
+        return classifier != null ? this.classifier : this.folder.getName();
     }
 
-    public void setClassfier(String classfier) {
-        this.classfier = classfier;
+    public void setClassifier(String classfier) {
+        this.classifier = classfier;
     }
     
 }

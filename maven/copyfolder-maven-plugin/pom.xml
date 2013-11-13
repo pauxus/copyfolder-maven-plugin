@@ -38,10 +38,11 @@
 				<version>1.8</version>
 				<configuration>
 					<projectsDirectory>src/it</projectsDirectory>
-
-					<pomIncludes>
-						<pomInclude>*/pom.xml</pomInclude>
-					</pomIncludes>
+					<goals>
+						<goal>clean</goal>
+						<goal>package</goal>
+					</goals>
+					<debug>true</debug>
 				</configuration>
 				<executions>
 					<execution>
@@ -68,11 +69,19 @@
 							<id>default-descriptor</id>
 							<phase>process-classes</phase>
 						</execution>
-
 					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>debug</id>
+			<properties>
+				<invoker.mavenOpts>-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9001</invoker.mavenOpts>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

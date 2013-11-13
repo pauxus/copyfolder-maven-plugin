@@ -25,16 +25,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.tools.ant.BuildLogger;
+import org.apache.tools.ant.NoBannerLogger;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.taskdefs.Zip;
 
 /**
- * Provides 
+ * Provides
  */
-@Mojo(name = "provide", 
-    aggregator = false, 
-    defaultPhase = LifecyclePhase.PACKAGE, 
-    requiresDependencyResolution = ResolutionScope.COMPILE, 
-    threadSafe = true)
+@Mojo(name = "provide", aggregator = false, defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ProvideMojo extends AbstractMojo {
 
     @Component
@@ -44,20 +44,42 @@ public class ProvideMojo extends AbstractMojo {
     private MavenProjectHelper projectHelper;
 
     @Parameter
-    private List<Resource>  resources;
+    private List<Resource> resources;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         for (Resource resource : resources) {
-            String classifier = resource.getClassfier() != null ? resource.getClassfier() : resource.getFolder().getName();
-            File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName()+ ".jar");
-            
+            File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
+                    + resource.getClassifier() + ".jar");
+
             Zip zip = new Zip();
+            zip.setProject(createProject());
             zip.setBasedir(resource.getFolder());
-            zip.setBasedir(targetArchive);
-            
-            projectHelper.attachArtifact(project, "jar", classifier, targetArchive);
+            zip.setDestFile(targetArchive);
+            zip.execute();
+
+            projectHelper.attachArtifact(project, "jar", resource.getClassifier(), targetArchive);
         }
-   }
-    
+    }
+
+    protected static Project createProject() {
+        Project project = new Project();
+
+        ProjectHelper helper = ProjectHelper.getProjectHelper();
+        project.addReference("ant.projectHelper", helper);
+        helper.getImportStack().addElement("AntBuilder");
+
+        BuildLogger logger = new NoBannerLogger();
+
+        logger.setMessageOutputLevel(2);
+        logger.setOutputPrintStream(System.out);
+        logger.setErrorPrintStream(System.err);
+
+        project.addBuildListener(logger);
+
+        project.init();
+        project.getBaseDir();
+        return project;
+    }
+
 }
