@@ -1,2 +1,5 @@
-*/target
-*/build.log
+target
+build.log
+.settings
+.classpath
+.project

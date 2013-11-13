@@ -42,7 +42,6 @@
 						<goal>clean</goal>
 						<goal>package</goal>
 					</goals>
-					<debug>true</debug>
 				</configuration>
 				<executions>
 					<execution>

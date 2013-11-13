@@ -34,7 +34,7 @@ import org.apache.tools.ant.taskdefs.Zip;
 /**
  * Provides one or more folders of the current module to be consumed by another module. The provided folder is packaged into a jar archived using the given classifiers.
  */
-@Mojo(name = "provide", aggregator = false, defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
+@Mojo(name = "provide", aggregator = false, defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class ProvideMojo extends AbstractMojo {
 
     @Component

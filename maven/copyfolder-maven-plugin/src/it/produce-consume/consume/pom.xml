@@ -1,0 +1,39 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.blackbuild.maven.plugins.it</groupId>
+	<artifactId>consumer-test</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<description>
+        Test the myproject-maven-plugin:do-something goal.
+    </description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.blackbuild.maven.plugins</groupId>
+				<artifactId>copyfolder-maven-plugin</artifactId>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>consume</goal>
+						</goals>
+						<configuration>
+							<source>copyfolder-test</source>
+							<classifier>sub1</classifier>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.blackbuild.maven.plugins.it</groupId>
+			<artifactId>copyfolder-test</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>
