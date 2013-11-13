@@ -23,6 +23,7 @@
 							<resources>
 								<resource>
 									<folder>target/classes/sub1</folder>
+									<classifier>sub1</classifier>
 								</resource>
 								<resource>
 									<folder>target/classes/sub2</folder>

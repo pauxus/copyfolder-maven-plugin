@@ -12,9 +12,10 @@
  */
 package com.blackbuild.maven.plugins.copyfolder;
 
-import javax.management.modelmbean.RequiredModelMBean;
+import java.io.File;
+import java.util.List;
 
-import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -24,7 +25,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.codehaus.gmaven.mojo.GroovyMojo;
+import org.apache.tools.ant.taskdefs.Zip;
 
 /**
  * Provides 
@@ -34,24 +35,28 @@ import org.codehaus.gmaven.mojo.GroovyMojo;
     defaultPhase = LifecyclePhase.PACKAGE, 
     requiresDependencyResolution = ResolutionScope.COMPILE, 
     threadSafe = true)
-public class ProvideMojo extends GroovyMojo {
+public class ProvideMojo extends AbstractMojo {
 
     @Component
-    MavenProject project
+    private MavenProject project;
 
     @Component
-    MavenProjectHelper projectHelper
+    private MavenProjectHelper projectHelper;
 
-    @Parameter(required = true)
-    Resource[] resources
+    @Parameter
+    private List<Resource>  resources;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        resources.each { resource ->
-            def classifier = resource.classfier ?: resource.folder.name
-            def targetArchive = new File(project.build.directory, project.build.finalName + ".jar")
-            ant.zip(basedir : resource.folder, destFile : targetArchive)
-            projectHelper.attachArtifact(project, "jar", classifier, targetArchive)
+        for (Resource resource : resources) {
+            String classifier = resource.getClassfier() != null ? resource.getClassfier() : resource.getFolder().getName();
+            File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName()+ ".jar");
+            
+            Zip zip = new Zip();
+            zip.setBasedir(resource.getFolder());
+            zip.setBasedir(targetArchive);
+            
+            projectHelper.attachArtifact(project, "jar", classifier, targetArchive);
         }
    }
     
