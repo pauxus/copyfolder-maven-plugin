@@ -56,7 +56,8 @@ public class ProvideMojo extends AbstractMojo {
                     + resource.getClassifier() + ".jar");
 
             Zip zip = new Zip();
-            zip.setProject(createProject());
+            zip.setProject(AntHelper.createProject());
+            zip.setTaskName("PROVIDE");
             zip.setBasedir(resource.getFolder());
             zip.setDestFile(targetArchive);
             zip.execute();
@@ -65,24 +66,5 @@ public class ProvideMojo extends AbstractMojo {
         }
     }
 
-    protected static Project createProject() {
-        Project project = new Project();
-
-        ProjectHelper helper = ProjectHelper.getProjectHelper();
-        project.addReference("ant.projectHelper", helper);
-        helper.getImportStack().addElement("AntBuilder");
-
-        BuildLogger logger = new NoBannerLogger();
-
-        logger.setMessageOutputLevel(2);
-        logger.setOutputPrintStream(System.out);
-        logger.setErrorPrintStream(System.err);
-
-        project.addBuildListener(logger);
-
-        project.init();
-        project.getBaseDir();
-        return project;
-    }
 
 }

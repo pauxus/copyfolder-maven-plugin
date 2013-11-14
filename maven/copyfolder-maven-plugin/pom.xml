@@ -40,7 +40,7 @@
 					<projectsDirectory>src/it</projectsDirectory>
 					<goals>
 						<goal>clean</goal>
-						<goal>package</goal>
+						<goal>generate-sources</goal>
 					</goals>
 				</configuration>
 				<executions>
