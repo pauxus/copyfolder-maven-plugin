@@ -36,7 +36,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
+import org.apache.tools.ant.taskdefs.Copy;
 import org.apache.tools.ant.taskdefs.Expand;
+import org.apache.tools.ant.types.FileSet;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
@@ -161,8 +163,15 @@ public class ConsumeMojo extends AbstractMojo {
              
              Resource target = findResourceWithClassifier(configuration.getChild("resources"));
 
+             Copy copy = new Copy();
+             copy.setProject(AntHelper.createProject());
+             copy.setTodir(new File(targetFolder));
+             FileSet source = new FileSet();
+             source.setDir(new File(reactorProject.getBasedir(), target.getFolder().getPath()));
              
+             copy.addFileset(source);
              
+             copy.execute();
              
              
          }
@@ -191,6 +200,7 @@ public class ConsumeMojo extends AbstractMojo {
         expand.setTaskName("CONSUME");
         expand.setSrc(sourceFile);
         expand.setDest(new File(targetFolder));
+        expand.execute();
     }
 
     private Dependency findMatchingArtifact() throws MojoExecutionException {
