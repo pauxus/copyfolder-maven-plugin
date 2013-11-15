@@ -17,10 +17,10 @@
 				<executions>
 					<execution>
 						<goals>
-							<goal>consume</goal>
+							<goal>consume-resource</goal>
 						</goals>
 						<configuration>
-							<source>copyfolder-test</source>
+							<source>provide-test</source>
 							<classifier>sub1</classifier>
 						</configuration>
 					</execution>
@@ -32,7 +32,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.blackbuild.maven.plugins.it</groupId>
-			<artifactId>copyfolder-test</artifactId>
+			<artifactId>provide-test</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>

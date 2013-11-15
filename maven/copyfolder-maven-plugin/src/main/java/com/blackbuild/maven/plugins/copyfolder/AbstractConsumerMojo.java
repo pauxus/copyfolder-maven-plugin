@@ -50,23 +50,16 @@ import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.ArtifactResult;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-/**
- * Consumes files provided by the provided goal in a different project.
- */
-@Mojo(name = "consume", aggregator = false, defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
-public class ConsumeMojo extends AbstractMojo {
+public abstract class AbstractConsumerMojo extends AbstractMojo {
 
     @Component
-    private MavenProject project;
+    protected MavenProject project;
 
     @Component
     private MavenSession session;
     
     @Component
     private RepositorySystem repoSystem;
-    
-    @Component
-    private MavenProjectHelper projectHelper;
     
     @Component
     private PluginDescriptor descriptor;
@@ -77,12 +70,6 @@ public class ConsumeMojo extends AbstractMojo {
     @Parameter(readonly=true, defaultValue="${project.remoteProjectRepositories}")
     private List<RemoteRepository> remoteRepos;
     
-    @Parameter(defaultValue="false")
-    private boolean addAsSource; 
-    
-    @Parameter(defaultValue="false")
-    private boolean addAsResource; 
-        
     /**
      * Project to consume files from. format: [groupId:]artifactId. The consumed project must be a dependency of this project.
      */
@@ -95,15 +82,6 @@ public class ConsumeMojo extends AbstractMojo {
     @Parameter(required = true)
     private String classifier;
     
-    /**
-     * Where should the files be copied to.
-     */
-    @Parameter(defaultValue="${project.build.directory}/consumer")
-    private File targetFolder;
-    
-    @Parameter(defaultValue = "${project.build.directory}/copyfolders-markers")
-    private File markersDir;
-
     public void execute() throws MojoExecutionException, MojoFailureException {
         
         Dependency baseArtifact = findMatchingArtifact();
@@ -140,22 +118,18 @@ public class ConsumeMojo extends AbstractMojo {
             copyFromFolder(reactorProject);
         }
         
-        if (addAsSource) {
-            this.project.addCompileSourceRoot(targetFolder.getPath());
-            getLog().info("Source directory: " + source + " added.");
-        }
-        if (addAsResource) {
-            projectHelper.addResource(project, targetFolder.getPath(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-            getLog().info("Resource directory: " + source + " added.");
-        }
-        
-
+        postProcessFolder();
     }
-    
 
+    protected abstract void postProcessFolder();
+
+    protected abstract File getTargetFolder();
+    
     private void copyFromFolder(MavenProject reactorProject) throws MojoExecutionException {
          for (PluginExecution execution : reactorProject.getPlugin(descriptor.getPluginLookupKey()).getExecutions()) {
              if (!execution.getGoals().contains("provide")) continue;
+             
+             getLog().info("Consuming files provided by " + execution.getId());
              
              Xpp3Dom configuration = (Xpp3Dom) execution.getConfiguration();
              
@@ -165,15 +139,13 @@ public class ConsumeMojo extends AbstractMojo {
 
              Copy copy = new Copy();
              copy.setProject(AntHelper.createProject());
-             copy.setTodir(targetFolder);
+             copy.setTodir(getTargetFolder());
              FileSet source = new FileSet();
              source.setDir(new File(reactorProject.getBasedir(), target.getFolder().getPath()));
              
              copy.addFileset(source);
              
              copy.execute();
-             
-             
          }
     }
     
@@ -199,7 +171,7 @@ public class ConsumeMojo extends AbstractMojo {
         expand.setTaskType("jar");
         expand.setTaskName("CONSUME");
         expand.setSrc(sourceFile);
-        expand.setDest(targetFolder);
+        expand.setDest(getTargetFolder());
         expand.execute();
     }
 
