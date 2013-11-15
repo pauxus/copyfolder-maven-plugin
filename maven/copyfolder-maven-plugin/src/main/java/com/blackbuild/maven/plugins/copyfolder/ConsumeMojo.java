@@ -84,7 +84,7 @@ public class ConsumeMojo extends AbstractMojo {
     private boolean addAsResource; 
         
     /**
-     * Project to consume files from. format: groupId:artifactId. The consumed project must be a dependency of this project.
+     * Project to consume files from. format: [groupId:]artifactId. The consumed project must be a dependency of this project.
      */
     @Parameter(required = true)
     private String source;
@@ -99,7 +99,7 @@ public class ConsumeMojo extends AbstractMojo {
      * Where should the files be copied to.
      */
     @Parameter(defaultValue="${project.build.directory}/consumer")
-    private String targetFolder;
+    private File targetFolder;
     
     @Parameter(defaultValue = "${project.build.directory}/copyfolders-markers")
     private File markersDir;
@@ -141,11 +141,11 @@ public class ConsumeMojo extends AbstractMojo {
         }
         
         if (addAsSource) {
-            this.project.addCompileSourceRoot(targetFolder);
+            this.project.addCompileSourceRoot(targetFolder.getPath());
             getLog().info("Source directory: " + source + " added.");
         }
         if (addAsResource) {
-            projectHelper.addResource(project, targetFolder, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+            projectHelper.addResource(project, targetFolder.getPath(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
             getLog().info("Resource directory: " + source + " added.");
         }
         
@@ -165,7 +165,7 @@ public class ConsumeMojo extends AbstractMojo {
 
              Copy copy = new Copy();
              copy.setProject(AntHelper.createProject());
-             copy.setTodir(new File(targetFolder));
+             copy.setTodir(targetFolder);
              FileSet source = new FileSet();
              source.setDir(new File(reactorProject.getBasedir(), target.getFolder().getPath()));
              
@@ -199,7 +199,7 @@ public class ConsumeMojo extends AbstractMojo {
         expand.setTaskType("jar");
         expand.setTaskName("CONSUME");
         expand.setSrc(sourceFile);
-        expand.setDest(new File(targetFolder));
+        expand.setDest(targetFolder);
         expand.execute();
     }
 
