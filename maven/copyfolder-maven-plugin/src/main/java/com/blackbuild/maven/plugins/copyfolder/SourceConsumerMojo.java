@@ -31,14 +31,22 @@ public class SourceConsumerMojo extends AbstractConsumerMojo {
     @Parameter(defaultValue="${project.build.directory}/generated-sources/consumer")
     private File outputDirectory;
     
+    @Parameter(defaultValue="true")
+    private boolean linkFolders;
+    
     @Override
     protected File getTargetFolder() {
         return outputDirectory;
     }
     
     @Override
+    protected boolean linkFoldersIfPossible() {
+        return linkFolders;
+    }
+    
+    @Override
     protected void postProcessFolder() {
-        this.project.addCompileSourceRoot(outputDirectory.getPath());
+        this.project.addCompileSourceRoot(realTargetFolder.getPath());
         getLog().info("Source directory: '" + outputDirectory + "' added.");
     }
     

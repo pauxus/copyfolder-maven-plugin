@@ -12,31 +12,39 @@
  */
 package com.blackbuild.maven.plugins.copyfolder;
 
-import java.io.File;
 
 /**
  * TODO Replace with class description.
  */
 public class Resource {
     
-    File folder;
+    private String folder;
     
-    String classifier;
+    private String classifier;
 
-    public File getFolder() {
+    public String getFolder() {
         return this.folder;
     }
 
-    public void setFolder(File folder) {
+    public void setFolder(String folder) {
         this.folder = folder;
     }
 
     public String getClassifier() {
-        return classifier != null ? this.classifier : this.folder.getName();
+        if (classifier != null) return this.classifier;
+        
+        return isSimpleResource() ? null : "*";
     }
 
     public void setClassifier(String classfier) {
         this.classifier = classfier;
     }
+
+    public boolean isSimpleResource() {
+        return !folder.contains("*");
+    }
     
+    public String getBasePath() {
+        return folder.substring(0, folder.indexOf('*'));
+    }
 }

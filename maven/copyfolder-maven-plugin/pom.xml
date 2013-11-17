@@ -77,8 +77,7 @@
 		<profile>
 			<id>debug</id>
 			<properties>
-				<invoker.mavenOpts>-Xdebug -Xnoagent
-					-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9001</invoker.mavenOpts>
+				<invoker.mavenOpts>-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9001</invoker.mavenOpts>
 			</properties>
 		</profile>
 	</profiles>

@@ -1,1 +1,1 @@
-return new File(basedir, "consume/target/generated-resources/consumer/filein1").isFile()
+return new File(basedir, "consume/target/classes/filein1").isFile()

@@ -37,6 +37,11 @@ public class FileConsumerMojo extends AbstractConsumerMojo {
     }
     
     @Override
+    protected boolean linkFoldersIfPossible() {
+        return false;
+    }
+    
+    @Override
     protected void postProcessFolder() {
     }
     

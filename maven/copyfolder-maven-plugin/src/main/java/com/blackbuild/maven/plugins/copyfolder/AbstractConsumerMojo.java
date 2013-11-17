@@ -13,6 +13,7 @@
 package com.blackbuild.maven.plugins.copyfolder;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +51,7 @@ import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.resolution.ArtifactResult;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-public abstract class AbstractConsumerMojo extends AbstractMojo {
+public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     @Component
     protected MavenProject project;
@@ -69,6 +70,8 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
     
     @Parameter(readonly=true, defaultValue="${project.remoteProjectRepositories}")
     private List<RemoteRepository> remoteRepos;
+    
+    protected File realTargetFolder;
     
     /**
      * Project to consume files from. format: [groupId:]artifactId. The consumed project must be a dependency of this project.
@@ -115,7 +118,7 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
         } else {
-            copyFromFolder(reactorProject);
+            copyOrLinkFromFolder(reactorProject);
         }
         
         postProcessFolder();
@@ -124,8 +127,10 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
     protected abstract void postProcessFolder();
 
     protected abstract File getTargetFolder();
+
+    protected abstract boolean linkFoldersIfPossible();
     
-    private void copyFromFolder(MavenProject reactorProject) throws MojoExecutionException {
+    private void copyOrLinkFromFolder(MavenProject reactorProject) throws MojoExecutionException {
          for (PluginExecution execution : reactorProject.getPlugin(descriptor.getPluginLookupKey()).getExecutions()) {
              if (!execution.getGoals().contains("provide")) continue;
              
@@ -135,24 +140,37 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
              
              if (configuration == null) continue;
              
-             Resource target = findResourceWithClassifier(configuration.getChild("resources"));
+             ResolvedResource target = findResourceWithClassifier(configuration.getChild("resources"), reactorProject.getBasedir());
 
-             Copy copy = new Copy();
-             copy.setProject(AntHelper.createProject());
-             copy.setTodir(getTargetFolder());
-             FileSet source = new FileSet();
-             source.setDir(new File(reactorProject.getBasedir(), target.getFolder().getPath()));
-             
-             copy.addFileset(source);
-             
-             copy.execute();
+             if (linkFoldersIfPossible()) {
+                 getLog().info("Only linking source folder (" + target.getFolder() + ").");
+                 realTargetFolder = target.getFolder();
+             } else {
+                 getLog().info("Copying source folder content (" + target.getFolder() + ").");
+                 Copy copy = new Copy();
+                 copy.setProject(AntHelper.createProject());
+                 copy.setTodir(getTargetFolder());
+                 FileSet source = new FileSet();
+                 source.setDir(target.getFolder());
+                 
+                 copy.addFileset(source);
+                 
+                 copy.execute();
+             }
          }
     }
     
-    private Resource findResourceWithClassifier(Xpp3Dom resources) throws MojoExecutionException {
+    private ResolvedResource findResourceWithClassifier(Xpp3Dom resources, File basedir) throws MojoExecutionException {
+        List<Resource> sourceResource = new ArrayList<Resource>(resources.getChildCount());
+        
         for ( Xpp3Dom node : resources.getChildren() ) {
-            Resource mapping = nodeToResource(node);
-            if (mapping.getClassifier().equals(classifier)) return mapping;
+            sourceResource.add(nodeToResource(node));
+        }
+
+        List<ResolvedResource> resolvedResources = resolveResources(sourceResource, basedir);
+        
+        for (ResolvedResource resolvedResource : resolvedResources) {
+            if (resolvedResource.getClassifier().equals(classifier)) return resolvedResource;
         }
         
         throw new MojoExecutionException("No resource with classifier '" + classifier + "' found.");
@@ -160,7 +178,7 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
     
     private Resource nodeToResource(Xpp3Dom resource) {
         Resource result = new Resource();
-        result.setFolder(new File(resource.getChild("folder").getValue()));
+        result.setFolder(resource.getChild("folder").getValue());
         if (resource.getChild("classifier") != null) result.setClassifier(resource.getChild("classifier").getValue());
         return result;
     }
@@ -173,6 +191,8 @@ public abstract class AbstractConsumerMojo extends AbstractMojo {
         expand.setSrc(sourceFile);
         expand.setDest(getTargetFolder());
         expand.execute();
+        
+        this.realTargetFolder = getTargetFolder();
     }
 
     private Dependency findMatchingArtifact() throws MojoExecutionException {

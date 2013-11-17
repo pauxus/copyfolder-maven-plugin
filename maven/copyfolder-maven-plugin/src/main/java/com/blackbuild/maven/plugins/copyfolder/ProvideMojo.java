@@ -15,27 +15,21 @@ package com.blackbuild.maven.plugins.copyfolder;
 import java.io.File;
 import java.util.List;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.tools.ant.BuildLogger;
-import org.apache.tools.ant.NoBannerLogger;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.taskdefs.Zip;
 
 /**
  * Provides one or more folders of the current module to be consumed by another module. The provided folder is packaged into a jar archived using the given classifiers.
  */
 @Mojo(name = "provide", aggregator = false, defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
-public class ProvideMojo extends AbstractMojo {
+public class ProvideMojo extends AbstractResourceAwareMojo {
 
     @Component
     private MavenProject project;
@@ -48,10 +42,14 @@ public class ProvideMojo extends AbstractMojo {
      */
     @Parameter
     private List<Resource> resources;
-
+    
     public void execute() throws MojoExecutionException, MojoFailureException {
 
-        for (Resource resource : resources) {
+        validateParameters();
+        
+        List<ResolvedResource> resolvedResources = resolveResources(resources, project.getBasedir());
+        
+        for (ResolvedResource resource : resolvedResources) {
             File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
                     + resource.getClassifier() + ".jar");
 
@@ -66,5 +64,9 @@ public class ProvideMojo extends AbstractMojo {
         }
     }
 
-
+    private void validateParameters() throws MojoExecutionException {
+        if (resources == null || resources.isEmpty()) {
+            throw new MojoExecutionException("You must define at least one resource.");
+        }
+    }
 }
