@@ -1,0 +1,237 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.blackbuild.maven.m2e.copyfolder</groupId>
+  <artifactId>com.blackbuild.maven.m2e.copyfolder</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>eclipse-plugin</packaging>
+  
+    <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>  
+    <!--
+     |
+     | These are the values that can be parameterized to control deploy and release behaviour. By default
+     | we are setup to deploy on the Tesla.io infrastructure.
+     |
+     -->
+    <tychoVersion>0.18.0</tychoVersion>
+  </properties>
+  
+  <build>
+    <plugins>
+      <!-- These plugins are required for all Tycho-based builds -->
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-maven-plugin</artifactId>
+        <version>${tychoVersion}</version>
+        <extensions>true</extensions>
+      </plugin>    
+      <plugin>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>target-platform-configuration</artifactId>
+        <version>${tychoVersion}</version>
+        <configuration>
+          <resolver>p2</resolver>
+          <ignoreTychoRepositories>true</ignoreTychoRepositories>
+        </configuration>
+      </plugin>     
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <!-- Important for M2E self-hosting -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.4.3</version>
+        </plugin>
+        <!-- Testing -->
+        <plugin>
+          <groupId>org.eclipse.tycho</groupId>
+          <artifactId>tycho-surefire-plugin</artifactId>
+          <version>${tychoVersion}</version>
+          <configuration>
+            <useUIHarness>true</useUIHarness>
+            <includes>
+              <include>**/*Test.java</include>
+            </includes>
+            <!--
+            We need to share these test resources across projects easily
+            <argLine>${tycho.test.jvmArgs} -Djava.io.tmpdir=${project.build.directory}/work</argLine>
+            <appArgLine>-eclipse.keyring target/keyring -eclipse.password resources/secure-storage-password.txt -pluginCustomization ${basedir}/plugin_customization.ini</appArgLine>
+            -->            
+            <argLine>${tycho.test.jvmArgs}</argLine>
+            <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+          </configuration>
+        </plugin>        
+      </plugins>            
+    </pluginManagement>    
+  </build>
+
+  <profiles>
+    <profile>
+      <id>deploy</id>
+      <activation>
+        <file>
+          <missing>.tycho-support</missing>
+        </file>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <!--
+             |
+             | We only care about deploying the update site. Disable the deployment of the standard
+             | Maven resources and only deploy the update site in the feature build which is defined
+             | in the feature-build profile below.
+             |
+             -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-deploy-plugin</artifactId>
+              <configuration>
+                <skip>true</skip>
+              </configuration>
+            </plugin>
+          </plugins>                    
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>sun-jvm</id>
+      <activation>
+        <property>
+          <name>java.vendor.url</name>
+          <value>http://java.sun.com/</value>
+        </property>
+      </activation>
+      <properties>
+        <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m</tycho.test.jvmArgs>
+      </properties>
+    </profile>
+    <profile>
+      <id>osx</id>
+      <activation>
+        <property>
+          <name>java.vendor.url</name>
+          <value>http://www.apple.com/</value>
+        </property>
+      </activation>
+      <properties>
+        <tycho.test.jvmArgs>-Xmx512m -XX:MaxPermSize=256m -Dosgi.ws=cocoa -XstartOnFirstThread</tycho.test.jvmArgs>
+        <osgi.ws>cocoa</osgi.ws>
+      </properties>
+    </profile>
+    <profile>
+      <id>sign</id>
+      <activation>
+        <property><name>jarsigner.alias</name></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jarsigner-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+              <execution>
+                <id>sign</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+    <!--
+     |
+     | Feature build profile will only be activated in the presence of a category.xml file in
+     | the base directory of the project.
+     |
+     -->     
+    <profile>
+      <id>feature-build</id>
+      <activation>
+        <file>
+          <exists>category.xml</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>tycho-packaging-plugin</artifactId>
+            <version>${tychoVersion}</version>
+            <configuration>
+              <deployableFeature>true</deployableFeature>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>tycho-p2-plugin</artifactId>
+            <version>${tychoVersion}</version>
+            <executions>
+              <execution>
+                <id>categorization</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>category-p2-metadata</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <metadataRepositoryName>${p2MetadataName}</metadataRepositoryName>
+              <artifactRepositoryName>${p2MetadataName}</artifactRepositoryName>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>io.tesla.tycho</groupId>
+            <artifactId>feature-zip-plugin</artifactId>
+            <version>0.0.1</version>
+            <configuration>
+              <sourceDirectory>${project.build.directory}/site</sourceDirectory>
+              <zip>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</zip>
+            </configuration>
+            <executions>
+              <execution>
+                <id>feature-zip</id> 
+                <phase>package</phase> 
+                <goals>
+                  <goal>zip</goal> 
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!--
+           |
+           | Only deploy the update site zip to the server using the maven-upload-plugin.
+           |
+           -->
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>maven-upload-plugin</artifactId>
+            <version>0.0.1</version>
+            <executions>
+              <execution>
+                <id>publish-site</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>upload-file</goal>
+                </goals>
+                <configuration>
+                  <file>${project.build.directory}/${project.artifactId}-${project.version}-site.zip</file>
+                  <serverId>${serverIdInSettingsXml}</serverId>
+                  <repositoryUrl>${repositoryUrl}</repositoryUrl>
+                  <repositoryPath>${repositoryPath}</repositoryPath>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>                    
+        </plugins>
+      </build>          
+    </profile>    
+    
+  </profiles>
+  
+</project>

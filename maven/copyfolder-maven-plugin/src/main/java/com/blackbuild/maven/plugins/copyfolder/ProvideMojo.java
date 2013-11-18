@@ -32,16 +32,16 @@ import org.apache.tools.ant.taskdefs.Zip;
 public class ProvideMojo extends AbstractResourceAwareMojo {
 
     @Component
-    private MavenProject project;
-
-    @Component
-    private MavenProjectHelper projectHelper;
+    protected MavenProject project;
 
     /**
      * List of resources to provide. Each resource consists of a folder and an optional classifier. If no classifier is given, the last segment of the folder is used.
      */
     @Parameter
     private List<Resource> resources;
+
+    @Component
+    private MavenProjectHelper projectHelper;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -50,23 +50,28 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
         List<ResolvedResource> resolvedResources = resolveResources(resources, project.getBasedir());
         
         for (ResolvedResource resource : resolvedResources) {
-            File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
-                    + resource.getClassifier() + ".jar");
-
-            Zip zip = new Zip();
-            zip.setProject(AntHelper.createProject());
-            zip.setTaskName("PROVIDE");
-            zip.setBasedir(resource.getFolder());
-            zip.setDestFile(targetArchive);
-            zip.execute();
-
-            projectHelper.attachArtifact(project, "jar", resource.getClassifier(), targetArchive);
+            handle(resource);
         }
+        
     }
 
-    private void validateParameters() throws MojoExecutionException {
+    protected void validateParameters() throws MojoExecutionException {
         if (resources == null || resources.isEmpty()) {
             throw new MojoExecutionException("You must define at least one resource.");
         }
+    }
+
+    protected void handle(ResolvedResource resource) {
+        File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
+                + resource.getClassifier() + ".jar");
+    
+        Zip zip = new Zip();
+        zip.setProject(AntHelper.createProject());
+        zip.setTaskName("PROVIDE");
+        zip.setBasedir(resource.getFolder());
+        zip.setDestFile(targetArchive);
+        zip.execute();
+    
+        projectHelper.attachArtifact(project, "jar", resource.getClassifier(), targetArchive);
     }
 }

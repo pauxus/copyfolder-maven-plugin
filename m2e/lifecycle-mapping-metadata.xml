@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lifecycleMappingMetadata>
+  <pluginExecutions>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.0.1,)</versionRange>
+        <goals>
+          <goal>provide</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+          <configurator>
+             <id>com.blackbuild.maven.m2e.copyfolder.providerConfigurator</id>
+           </configurator>
+      </action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.0.1,)</versionRange>
+        <goals>
+          <goal>consume</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+        <execute>
+          <runOnConfiguration>true</runOnConfiguration>
+          <runOnIncremental>true</runOnIncremental>
+        </execute>
+      </action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.0.1,)</versionRange>
+        <goals>
+          <goal>consume-source</goal>
+          <goal>consume-resource</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+          <configurator>
+             <id>com.blackbuild.maven.m2e.copyfolder.consumerConfigurator</id>
+           </configurator>
+      </action>
+    </pluginExecution>
+
+
+
+  </pluginExecutions>
+</lifecycleMappingMetadata>

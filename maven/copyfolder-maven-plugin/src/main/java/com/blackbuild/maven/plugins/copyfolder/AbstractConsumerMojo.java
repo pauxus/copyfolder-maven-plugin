@@ -12,13 +12,19 @@
  */
 package com.blackbuild.maven.plugins.copyfolder;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.artifact.ArtifactUtils;
@@ -27,6 +33,9 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.building.DefaultModelBuildingRequest;
+import org.apache.maven.model.building.ModelBuilder;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -65,7 +74,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     @Component
     private PluginDescriptor descriptor;
-
+    
     @Parameter(readonly = true, defaultValue = "${repositorySystemSession}")
     private RepositorySystemSession repoSession;
 
@@ -75,6 +84,12 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     @Parameter(defaultValue = "${project.build.directory}/consumer.marker")
     private File markerFile;
 
+    @Parameter(defaultValue = "consumer.link.path")
+    private File linkMarkerProperty;
+    
+    
+    
+    
     protected File realTargetFolder;
 
     /**
@@ -124,11 +139,57 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
+            deleteConsumerMarker();
         } else {
-            copyOrLinkFromFolder(reactorProject);
+            if (reactorProject == null) {
+                copyOrLinkFromForeignFolder(sourceFile);
+            } else {
+                copyOrLinkFromReactorProject(reactorProject);
+                deleteConsumerMarker();
+            }
         }
 
         postProcessFolder();
+    }
+
+    private void deleteConsumerMarker() {
+        if (getConsumerMarkerFile().isFile()) {
+            getConsumerMarkerFile().delete();
+        }
+    }
+
+    private void copyOrLinkFromForeignFolder(File sourceFile) throws MojoExecutionException {
+        Properties providerProperties = findMarkerFileFrom(sourceFile);
+        
+        ResolvedResource virtualResource = new ResolvedResource(new File(providerProperties.getProperty(classifier)), classifier);
+        copyOrLinkFolder(virtualResource);
+        try {
+            providerProperties.store(new FileWriter(getConsumerMarkerFile()), "Created by copyfolder-plugin");
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not write consumer marker!", e);
+        }
+    }
+
+    private File getConsumerMarkerFile() {
+        return new File(project.getBuild().getDirectory(), "copyfolders.m2e.consumer-" + source.replace(':', '_') + ".properties");
+    }
+
+    private Properties findMarkerFileFrom(File sourceFile) throws MojoExecutionException {
+        File parent = sourceFile;
+        while (parent != null && !new File(parent, "copyfolders.m2e.provider.properties").isFile()) {
+            parent = parent.getParentFile();
+        }
+        
+        if (parent == null) throw new MojoExecutionException("Could not find locator file!");
+        
+        Properties result = new Properties();
+        try {
+            result.load(new FileInputStream(new File(parent, "copyfolders.m2e.provider.properties")));
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not load m2e marker file!", e);
+        }
+        
+        return result;
     }
 
     protected abstract void postProcessFolder();
@@ -137,7 +198,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     protected abstract boolean linkFoldersIfPossible();
 
-    private void copyOrLinkFromFolder(MavenProject reactorProject) throws MojoExecutionException {
+    private void copyOrLinkFromReactorProject(MavenProject reactorProject) throws MojoExecutionException {
         for (PluginExecution execution : reactorProject.getPlugin(descriptor.getPluginLookupKey()).getExecutions()) {
             if (!execution.getGoals().contains("provide"))
                 continue;
@@ -152,21 +213,25 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
             ResolvedResource target = findResourceWithClassifier(configuration.getChild("resources"),
                     reactorProject.getBasedir());
 
-            if (linkFoldersIfPossible()) {
-                getLog().info("Only linking source folder (" + target.getFolder() + ").");
-                realTargetFolder = target.getFolder();
-            } else {
-                getLog().info("Copying source folder content (" + target.getFolder() + ").");
-                Copy copy = new Copy();
-                copy.setProject(AntHelper.createProject());
-                copy.setTodir(getTargetFolder());
-                FileSet source = new FileSet();
-                source.setDir(target.getFolder());
+            copyOrLinkFolder(target);
+        }
+    }
 
-                copy.addFileset(source);
+    private void copyOrLinkFolder(ResolvedResource target) {
+        if (linkFoldersIfPossible()) {
+            getLog().info("Only linking source folder (" + target.getFolder() + ").");
+            realTargetFolder = target.getFolder();
+        } else {
+            getLog().info("Copying source folder content (" + target.getFolder() + ").");
+            Copy copy = new Copy();
+            copy.setProject(AntHelper.createProject());
+            copy.setTodir(getTargetFolder());
+            FileSet source = new FileSet();
+            source.setDir(target.getFolder());
 
-                copy.execute();
-            }
+            copy.addFileset(source);
+
+            copy.execute();
         }
     }
 
