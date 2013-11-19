@@ -12,41 +12,23 @@
  */
 package com.blackbuild.maven.plugins.copyfolder;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
-import org.apache.maven.artifact.ArtifactUtils;
-import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
-import org.apache.maven.model.building.DefaultModelBuildingRequest;
-import org.apache.maven.model.building.ModelBuilder;
-import org.apache.maven.model.building.ModelBuildingRequest;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
 import org.apache.tools.ant.taskdefs.Copy;
 import org.apache.tools.ant.taskdefs.Expand;
 import org.apache.tools.ant.types.FileSet;
@@ -54,11 +36,9 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.aether.RepositorySystem;
 import org.sonatype.aether.RepositorySystemSession;
 import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.impl.ArtifactResolver;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.resolution.ArtifactRequest;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.resolution.ArtifactResult;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
@@ -86,9 +66,6 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     @Parameter(defaultValue = "consumer.link.path")
     private File linkMarkerProperty;
-    
-    
-    
     
     protected File realTargetFolder;
 
@@ -140,13 +117,11 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
             deleteConsumerMarker();
+        } else if (reactorProject == null) {
+            copyOrLinkFromForeignFolder(sourceFile);
         } else {
-            if (reactorProject == null) {
-                copyOrLinkFromForeignFolder(sourceFile);
-            } else {
-                copyOrLinkFromReactorProject(reactorProject);
-                deleteConsumerMarker();
-            }
+            copyOrLinkFromReactorProject(reactorProject);
+            deleteConsumerMarker();
         }
 
         postProcessFolder();

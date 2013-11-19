@@ -52,10 +52,6 @@ public class CopyFolderBuildParticipant extends MojoExecutionBuildParticipant {
         // execute the mojo
         maven.execute(getSession().getCurrentProject(), getMojoExecution(), monitor);
         
-        //String source = maven.getMojoParameterValue(getSession().getCurrentProject(), getMojoExecution(), "source", String.class, monitor);
-        
-        //new File(project.getBuild().getDirectory(), "copyfolders.m2e.consumer-" + source.replace(':', '_') + ".properties");
-        
         List<String> newRoots = new ArrayList<String>(getSession().getCurrentProject().getCompileSourceRoots());
         
         String realFolder;
@@ -84,8 +80,7 @@ public class CopyFolderBuildParticipant extends MojoExecutionBuildParticipant {
 
         if (local.equals(external)) {
             if (localFolder.isLinked()) {
-                // TODO remove link
-                //localFolder.
+                //localFolder.createLink(local, IResource.REPLACE, monitor);           
             }
         } else {
             // path shows an external, set link
