@@ -1,24 +1,6 @@
 package com.blackbuild.maven.m2e.copyfolder;
 
-import java.lang.reflect.InvocationTargetException;
-/* _____________________________________________________________________________
- *
- * Project: ACM
- * File:    Resource.java
- * _____________________________________________________________________________
- *
- * Description:       See class comment
- * _____________________________________________________________________________
- *
- * Copyright: (C) DAIMLER 2013, all rights reserved
- * _____________________________________________________________________________
- */
-
-
-
-/**
- * TODO Replace with class description.
- */
+ 
 public class Resource {
     
     private String folder;

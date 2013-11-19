@@ -13,36 +13,21 @@
 package com.blackbuild.maven.m2e.copyfolder;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecution;
-import org.codehaus.plexus.util.Scanner;
-import org.eclipse.core.internal.events.LifecycleEvent;
-import org.eclipse.core.internal.resources.Folder;
-import org.eclipse.core.internal.resources.LinkDescription;
-import org.eclipse.core.internal.resources.Project;
-import org.eclipse.core.internal.resources.ResourceException;
-import org.eclipse.core.internal.resources.ResourceInfo;
-import org.eclipse.core.internal.utils.Messages;
-import org.eclipse.core.internal.utils.Policy;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourceAttributes;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
-import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
-import org.eclipse.osgi.util.NLS;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -103,6 +88,8 @@ public class CopyFolderBuildParticipant extends MojoExecutionBuildParticipant {
                 localFolder.createLink(external, IResource.REPLACE, monitor);
             }
         }
+        
+        buildContext.refresh(generated);
                 
         return null;
     }

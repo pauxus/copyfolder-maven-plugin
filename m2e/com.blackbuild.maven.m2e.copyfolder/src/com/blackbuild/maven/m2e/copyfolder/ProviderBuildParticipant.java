@@ -14,26 +14,16 @@ package com.blackbuild.maven.m2e.copyfolder;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.Scanner;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
-import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -58,6 +48,8 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
         File output = new File(getSession().getCurrentProject().getBuild().getDirectory(), "copyfolders.m2e.provider.properties");
         
         provisionFolders.store(new FileWriter(output), "Created by m2e-copyfolder plugin");
+        
+        buildContext.refresh(output);
         
         return null; 
     }
