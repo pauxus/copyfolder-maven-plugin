@@ -30,6 +30,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.configurator.AbstractBuildParticipant;
@@ -58,7 +59,7 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
         
         provisionFolders.store(new FileWriter(output), "Created by m2e-copyfolder plugin");
         
-        return null;
+        return null; 
     }
     
     public Properties resolveResources(List<Object> resources, File basedir) throws MojoExecutionException {

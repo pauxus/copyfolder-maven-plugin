@@ -50,9 +50,8 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
         List<ResolvedResource> resolvedResources = resolveResources(resources, project.getBasedir());
         
         for (ResolvedResource resource : resolvedResources) {
-            handle(resource);
+            packageAndAddResource(resource);
         }
-        
     }
 
     protected void validateParameters() throws MojoExecutionException {
@@ -61,7 +60,7 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
         }
     }
 
-    protected void handle(ResolvedResource resource) {
+    protected void packageAndAddResource(ResolvedResource resource) {
         File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
                 + resource.getClassifier() + ".jar");
     

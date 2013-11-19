@@ -42,7 +42,7 @@ public class FileConsumerMojo extends AbstractConsumerMojo {
     }
     
     @Override
-    protected void postProcessFolder() {
+    protected void addNewFolderToMavenModel() {
     }
     
 }

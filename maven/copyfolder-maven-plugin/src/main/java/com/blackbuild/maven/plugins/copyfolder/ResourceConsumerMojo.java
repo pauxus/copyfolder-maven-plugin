@@ -51,7 +51,7 @@ public class ResourceConsumerMojo extends AbstractConsumerMojo {
     private MavenProjectHelper projectHelper;
     
     @Override
-    protected void postProcessFolder() {
+    protected void addNewFolderToMavenModel() {
         projectHelper.addResource(project, realTargetFolder.getPath(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         getLog().info("Resource directory: '" + outputDirectory + "' added.");
     }

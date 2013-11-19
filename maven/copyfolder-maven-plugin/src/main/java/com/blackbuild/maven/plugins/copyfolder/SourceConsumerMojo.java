@@ -45,7 +45,7 @@ public class SourceConsumerMojo extends AbstractConsumerMojo {
     }
     
     @Override
-    protected void postProcessFolder() {
+    protected void addNewFolderToMavenModel() {
         this.project.addCompileSourceRoot(realTargetFolder.getPath());
         getLog().info("Source directory: '" + outputDirectory + "' added.");
     }

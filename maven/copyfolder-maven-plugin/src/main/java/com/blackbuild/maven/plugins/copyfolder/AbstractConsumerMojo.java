@@ -30,6 +30,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.tools.ant.taskdefs.Copy;
+import org.apache.tools.ant.taskdefs.Delete;
 import org.apache.tools.ant.taskdefs.Expand;
 import org.apache.tools.ant.types.FileSet;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -61,9 +62,6 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     @Parameter(readonly = true, defaultValue = "${project.remoteProjectRepositories}")
     private List<RemoteRepository> remoteRepos;
 
-    @Parameter(defaultValue = "${project.build.directory}/consumer.marker")
-    private File markerFile;
-
     @Parameter(defaultValue = "consumer.link.path")
     private File linkMarkerProperty;
     
@@ -94,43 +92,43 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         File sourceFile = null;
 
         if (reactorProject != null) {
-            // artifact from reactor
-            sourceFile = findAttachedArtifactFile(reactorProject);
-
-            if (sourceFile == null) {
-                // this can happen, when the reactor is not build up to package
-                sourceFile = new File(reactorProject.getBuild().getOutputDirectory());
-            }
+            sourceFile = readSourceFromReactor(reactorProject);
         }
 
         if (sourceFile == null) {
-            try {
-                sourceFile = repoSystem.resolveArtifact(repoSession, new ArtifactRequest(provided, remoteRepos, null))
-                        .getArtifact().getFile();
-            } catch (ArtifactResolutionException e) {
-                throw new MojoExecutionException(e.getMessage(), e);
-            }
+            sourceFile = readSourceFromArtifact(provided);
         }
 
         getLog().info("Using source from " + sourceFile);
 
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
-            deleteConsumerMarker();
         } else if (reactorProject == null) {
             copyOrLinkFromForeignFolder(sourceFile);
         } else {
             copyOrLinkFromReactorProject(reactorProject);
-            deleteConsumerMarker();
         }
 
-        postProcessFolder();
+        addNewFolderToMavenModel();
     }
 
-    private void deleteConsumerMarker() {
-        if (getConsumerMarkerFile().isFile()) {
-            getConsumerMarkerFile().delete();
+    private File readSourceFromArtifact(Artifact provided) throws MojoExecutionException {
+        try {
+            return repoSystem.resolveArtifact(repoSession, new ArtifactRequest(provided, remoteRepos, null))
+                    .getArtifact().getFile();
+        } catch (ArtifactResolutionException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
         }
+    }
+
+    private File readSourceFromReactor(MavenProject reactorProject) {
+        File sourceFile;
+        sourceFile = findAttachedArtifactFile(reactorProject);
+
+        if (sourceFile == null) {
+            sourceFile = new File(reactorProject.getBuild().getOutputDirectory());
+        }
+        return sourceFile;
     }
 
     private void copyOrLinkFromForeignFolder(File sourceFile) throws MojoExecutionException {
@@ -138,15 +136,6 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         
         ResolvedResource virtualResource = new ResolvedResource(new File(providerProperties.getProperty(classifier)), classifier);
         copyOrLinkFolder(virtualResource);
-        try {
-            providerProperties.store(new FileWriter(getConsumerMarkerFile()), "Created by copyfolder-plugin");
-        } catch (IOException e) {
-            throw new MojoExecutionException("Could not write consumer marker!", e);
-        }
-    }
-
-    private File getConsumerMarkerFile() {
-        return new File(project.getBuild().getDirectory(), "copyfolders.m2e.consumer-" + source.replace(':', '_') + ".properties");
     }
 
     private Properties findMarkerFileFrom(File sourceFile) throws MojoExecutionException {
@@ -167,7 +156,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         return result;
     }
 
-    protected abstract void postProcessFolder();
+    protected abstract void addNewFolderToMavenModel();
 
     protected abstract File getTargetFolder();
 
@@ -196,6 +185,13 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         if (linkFoldersIfPossible()) {
             getLog().info("Only linking source folder (" + target.getFolder() + ").");
             realTargetFolder = target.getFolder();
+            Delete delete = new Delete();
+            delete.setProject(AntHelper.createProject());
+            delete.setQuiet(true);
+            delete.setDir(getTargetFolder());
+            delete.setTaskName("LINK");
+            delete.execute();
+            getTargetFolder().mkdirs();
         } else {
             getLog().info("Copying source folder content (" + target.getFolder() + ").");
             Copy copy = new Copy();
@@ -236,30 +232,15 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     }
 
     private void copyFromArtifact(File sourceFile) throws MojoExecutionException {
-        if (markersFileIsOlderThan(sourceFile)) {
-
-            Expand expand = new Expand();
-            expand.setProject(AntHelper.createProject());
-            expand.setTaskType("jar");
-            expand.setTaskName("CONSUME");
-            expand.setSrc(sourceFile);
-            expand.setDest(getTargetFolder());
-            expand.execute();
-            setMarker(sourceFile);
-        } else {
-            getLog().info("Skipping copy, sourcefile is older.");
-        }
+        Expand expand = new Expand();
+        expand.setProject(AntHelper.createProject());
+        expand.setTaskType("jar");
+        expand.setTaskName("CONSUME");
+        expand.setSrc(sourceFile);
+        expand.setDest(getTargetFolder());
+        expand.execute();
 
         this.realTargetFolder = getTargetFolder();
-    }
-
-    private boolean markersFileIsOlderThan(File sourceFile) {
-        if (markerFile.exists()) {
-            return sourceFile.lastModified() > markerFile.lastModified();
-        } else {
-            // if the marker doesn't exist, we want to copy so assume it is infinitely older
-            return true;
-        }
     }
 
     private Dependency findMatchingArtifact() throws MojoExecutionException {
@@ -308,25 +289,4 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         }
         return null;
     }
-
-    public void setMarker(File sourceFile) throws MojoExecutionException {
-        // create marker file
-        try {
-            markerFile.getParentFile().mkdirs();
-        } catch (NullPointerException e) {
-            // parent is null, ignore it.
-        }
-        try {
-            markerFile.createNewFile();
-        } catch (IOException e) {
-            throw new MojoExecutionException("Unable to create Marker: " + markerFile.getAbsolutePath(), e);
-        }
-
-        try {
-            markerFile.setLastModified(sourceFile.lastModified());
-        } catch (Exception e) {
-            throw new MojoExecutionException("Unable to update Marker timestamp: " + markerFile.getAbsolutePath(), e);
-        }
-    }
-
 }

@@ -57,7 +57,7 @@ public class Resource {
         Resource result = new Resource();
         try {
             result.setFolder((String) otherClass.getMethod("getFolder").invoke(rawResource));
-            result.setFolder((String) otherClass.getMethod("getClassifier").invoke(rawResource));
+            result.setClassifier((String) otherClass.getMethod("getClassifier").invoke(rawResource));
         } catch (Exception e) {
             
         }
