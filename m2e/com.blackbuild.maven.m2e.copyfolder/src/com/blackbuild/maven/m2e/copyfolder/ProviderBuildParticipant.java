@@ -43,7 +43,7 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
 
         List<Object> mojo = maven.getMojoParameterValue(getSession().getCurrentProject(), getMojoExecution(), "resources", List.class, monitor);
         
-        Properties provisionFolders = resolveResources(mojo, getSession().getCurrentProject().getBasedir());
+        Properties provisionFolders = resolveResources(mojo, getSession().getCurrentProject().getBasedir(), buildContext);
         
         File output = new File(getSession().getCurrentProject().getBuild().getDirectory(), "copyfolders.m2e.provider.properties");
         
@@ -54,7 +54,7 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
         return null; 
     }
     
-    public Properties resolveResources(List<Object> resources, File basedir) throws MojoExecutionException {
+    public Properties resolveResources(List<Object> resources, File basedir, BuildContext buildContext) throws MojoExecutionException {
         Properties result = new Properties();
         
         for (Object rawResource : resources) {
@@ -64,6 +64,7 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
             if (resource.isSimpleResource()) {
                 File folder = new File(basedir, resource.getFolder());
                 result.put(resource.getClassifier() != null ? resource.getClassifier() : folder.getName(), new File(basedir, resource.getFolder()).getAbsolutePath());
+                buildContext.refresh(folder);
                 continue;
             }
             
@@ -81,6 +82,7 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
                 }
                 
                 result.put(resource.getClassifier().replace("*", matchedResource), actualFolder.getAbsolutePath());
+                buildContext.refresh(actualFolder);
             }
         }
         

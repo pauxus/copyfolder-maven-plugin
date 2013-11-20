@@ -85,7 +85,7 @@ public class CopyFolderBuildParticipant extends MojoExecutionBuildParticipant {
             prepare(localFolder, monitor);
             
             if (!localFolder.getRawLocation().equals(external)) {
-                localFolder.createLink(external, IResource.REPLACE, monitor);
+                localFolder.createLink(external, IResource.REPLACE | IResource.ALLOW_MISSING_LOCAL, monitor);
             }
         }
         
