@@ -15,7 +15,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 				<groupId>com.blackbuild.maven.plugins</groupId>
 				<artifactId>copyfolder-maven-plugin</artifactId>
 				<version>@project.version@</version>
-
 				<executions>
 					<execution>
 						<goals>
@@ -24,12 +23,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 						<configuration>
 							<resources>
 								<resource>
-									<folder>target/classes/sub1</folder>
-									<classifier>sub1</classifier>
-								</resource>
-								<resource>
-									<folder>target/classes/sub2</folder>
-									<classifier>namedsub</classifier>
+									<folder>src/main/java</folder>
+									<classifier>java</classifier>
 								</resource>
 							</resources>
 						</configuration>

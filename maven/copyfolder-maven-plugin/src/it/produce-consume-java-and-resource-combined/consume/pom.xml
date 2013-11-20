@@ -16,21 +16,12 @@
 				<version>@project.version@</version>
 				<executions>
 					<execution>
-						<id>copy-resource</id>
-						<goals>
-							<goal>consume-resource</goal>
-						</goals>
-						<configuration>
-							<source>provide-test</source>
-							<classifier>res</classifier>
-						</configuration>
-					</execution>
-					<execution>
 						<id>copy-source</id>
 						<goals>
 							<goal>consume-source</goal>
 						</goals>
 						<configuration>
+							<combined>true</combined>
 							<source>provide-test</source>
 							<classifier>java</classifier>
 						</configuration>

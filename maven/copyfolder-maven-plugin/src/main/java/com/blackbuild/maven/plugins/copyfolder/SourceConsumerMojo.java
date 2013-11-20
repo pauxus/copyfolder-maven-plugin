@@ -13,11 +13,14 @@
 package com.blackbuild.maven.plugins.copyfolder;
 
 import java.io.File;
+import java.util.Collections;
 
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProjectHelper;
 
 /**
  * Consumes files provided by the provided goal in a different project.
@@ -34,6 +37,15 @@ public class SourceConsumerMojo extends AbstractConsumerMojo {
     @Parameter(defaultValue="true")
     private boolean linkFolders;
     
+    /**
+     * Does the copied folder contain both sources and resources?
+     */
+    @Parameter(defaultValue="false")
+    private boolean combined;
+    
+    @Component
+    private MavenProjectHelper projectHelper;
+    
     @Override
     protected File getTargetFolder() {
         return outputDirectory;
@@ -48,6 +60,11 @@ public class SourceConsumerMojo extends AbstractConsumerMojo {
     protected void addNewFolderToMavenModel() {
         this.project.addCompileSourceRoot(realTargetFolder.getPath());
         getLog().info("Source directory: '" + outputDirectory + "' added.");
+        
+        if (combined) {
+            getLog().info("Combined folder, adding as resource as well.");
+            projectHelper.addResource(project, realTargetFolder.getPath(), Collections.EMPTY_LIST, Collections.singletonList("**/*.java"));
+            getLog().info("Resource directory: '" + outputDirectory + "' added.");
+        }
     }
-    
 }

@@ -13,6 +13,7 @@
 			<plugin>
 				<groupId>com.blackbuild.maven.plugins</groupId>
 				<artifactId>copyfolder-maven-plugin</artifactId>
+				<version>@project.version@</version>
 
 				<executions>
 					<execution>

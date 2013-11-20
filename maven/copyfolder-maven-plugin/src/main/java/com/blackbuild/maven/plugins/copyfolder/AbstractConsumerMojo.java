@@ -122,13 +122,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     }
 
     private File readSourceFromReactor(MavenProject reactorProject) {
-        File sourceFile;
-        sourceFile = findAttachedArtifactFile(reactorProject);
-
-        if (sourceFile == null) {
-            sourceFile = new File(reactorProject.getBuild().getOutputDirectory());
-        }
-        return sourceFile;
+        return new File(reactorProject.getBuild().getOutputDirectory());
     }
 
     private void copyOrLinkFromForeignFolder(File sourceFile) throws MojoExecutionException {
@@ -280,13 +274,5 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         return projectToTest.getGroupId().equals(artifact.getGroupId())
                 && projectToTest.getArtifactId().equals(artifact.getArtifactId())
                 && projectToTest.getVersion().equals(artifact.getVersion());
-    }
-
-    private File findAttachedArtifactFile(MavenProject reactorProject) {
-        for (org.apache.maven.artifact.Artifact attached : reactorProject.getAttachedArtifacts()) {
-            if (classifier.equals(attached.getClassifier()))
-                return attached.getFile();
-        }
-        return null;
     }
 }
