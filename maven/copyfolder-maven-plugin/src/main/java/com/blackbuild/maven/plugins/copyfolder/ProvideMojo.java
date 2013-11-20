@@ -39,9 +39,17 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
      */
     @Parameter
     private List<Resource> resources;
+    
+    /**
+     * Should this execution allow missing sources?
+     */
+    @Parameter(defaultValue="false")
+    private boolean allowMissing;
 
     @Component
     private MavenProjectHelper projectHelper;
+    
+    
     
     public void execute() throws MojoExecutionException, MojoFailureException {
 
@@ -60,7 +68,15 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
         }
     }
 
-    protected void packageAndAddResource(ResolvedResource resource) {
+    protected void packageAndAddResource(ResolvedResource resource) throws MojoExecutionException {
+        if (resource.getFolder().isDirectory()) {
+            if (allowMissing) {
+                resource.getFolder().mkdirs();
+            } else {
+                throw new MojoExecutionException(resource.getFolder() + " does not exist");
+            }
+        }
+        
         File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
                 + resource.getClassifier() + ".jar");
     
