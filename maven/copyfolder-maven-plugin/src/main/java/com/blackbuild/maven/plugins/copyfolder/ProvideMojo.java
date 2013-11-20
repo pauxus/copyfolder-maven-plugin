@@ -24,6 +24,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.taskdefs.Zip.WhenEmpty;
 
 /**
  * Provides one or more folders of the current module to be consumed by another module. The provided folder is packaged into a jar archived using the given classifiers.
@@ -49,8 +50,6 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
     @Component
     private MavenProjectHelper projectHelper;
     
-    
-    
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         validateParameters();
@@ -69,7 +68,7 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
     }
 
     protected void packageAndAddResource(ResolvedResource resource) throws MojoExecutionException {
-        if (resource.getFolder().isDirectory()) {
+        if (!resource.getFolder().isDirectory()) {
             if (allowMissing) {
                 resource.getFolder().mkdirs();
             } else {
@@ -85,6 +84,7 @@ public class ProvideMojo extends AbstractResourceAwareMojo {
         zip.setTaskName("PROVIDE");
         zip.setBasedir(resource.getFolder());
         zip.setDestFile(targetArchive);
+        zip.setWhenempty((WhenEmpty) WhenEmpty.getInstance(WhenEmpty.class, "create"));
         zip.execute();
     
         projectHelper.attachArtifact(project, "jar", resource.getClassifier(), targetArchive);
