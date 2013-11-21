@@ -41,6 +41,7 @@ import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.resolution.ArtifactRequest;
 import org.sonatype.aether.resolution.ArtifactResolutionException;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
@@ -55,6 +56,9 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     @Component
     private PluginDescriptor descriptor;
+    
+    @Component
+    private BuildContext buildContext;
     
     @Parameter(readonly = true, defaultValue = "${repositorySystemSession}")
     private RepositorySystemSession repoSession;
@@ -104,12 +108,15 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
         } else if (reactorProject == null) {
-            copyOrLinkFromForeignFolder(sourceFile);
+            getLog().info("Source is a non-reactor folder, assuming IDE build, doing nothing.");
         } else {
             copyOrLinkFromReactorProject(reactorProject);
         }
 
         addNewFolderToMavenModel();
+        
+        buildContext.refresh(getTargetFolder());
+        buildContext.refresh(realTargetFolder);
     }
 
     private File readSourceFromArtifact(Artifact provided) throws MojoExecutionException {
@@ -123,31 +130,6 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     private File readSourceFromReactor(MavenProject reactorProject) {
         return new File(reactorProject.getBuild().getOutputDirectory());
-    }
-
-    private void copyOrLinkFromForeignFolder(File sourceFile) throws MojoExecutionException {
-        Properties providerProperties = findMarkerFileFrom(sourceFile);
-        
-        ResolvedResource virtualResource = new ResolvedResource(new File(providerProperties.getProperty(classifier)), classifier);
-        copyOrLinkFolder(virtualResource);
-    }
-
-    private Properties findMarkerFileFrom(File sourceFile) throws MojoExecutionException {
-        File parent = sourceFile;
-        while (parent != null && !new File(parent, "copyfolders.m2e.provider.properties").isFile()) {
-            parent = parent.getParentFile();
-        }
-        
-        if (parent == null) throw new MojoExecutionException("Could not find locator file!");
-        
-        Properties result = new Properties();
-        try {
-            result.load(new FileInputStream(new File(parent, "copyfolders.m2e.provider.properties")));
-        } catch (IOException e) {
-            throw new MojoExecutionException("Could not load m2e marker file!", e);
-        }
-        
-        return result;
     }
 
     protected abstract void addNewFolderToMavenModel();

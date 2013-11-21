@@ -1,7 +1,7 @@
 package com.blackbuild.maven.m2e.copyfolder;
 
  
-public class Resource {
+public class RResource {
     
     private String folder;
     
@@ -33,10 +33,10 @@ public class Resource {
         return folder.substring(0, folder.indexOf('*'));
     }
 
-    public static Resource fromObject(Object rawResource) {
+    public static RResource fromObject(Object rawResource) {
         Class<? extends Object> otherClass = rawResource.getClass();
         
-        Resource result = new Resource();
+        RResource result = new RResource();
         try {
             result.setFolder((String) otherClass.getMethod("getFolder").invoke(rawResource));
             result.setClassifier((String) otherClass.getMethod("getClassifier").invoke(rawResource));

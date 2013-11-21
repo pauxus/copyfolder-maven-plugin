@@ -36,6 +36,9 @@ public class FileConsumerMojo extends AbstractConsumerMojo {
         return outputDirectory;
     }
     
+    @Parameter(defaultValue="false", readonly=true)
+    private boolean linkFolders;
+
     @Override
     protected boolean linkFoldersIfPossible() {
         return false;

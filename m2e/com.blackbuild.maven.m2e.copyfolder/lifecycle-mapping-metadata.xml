@@ -22,24 +22,9 @@
         <artifactId>copyfolder-maven-plugin</artifactId>
         <versionRange>[0.0.1,)</versionRange>
         <goals>
-          <goal>consume</goal>
-        </goals>
-      </pluginExecutionFilter>
-      <action>
-        <execute>
-          <runOnConfiguration>true</runOnConfiguration>
-          <runOnIncremental>true</runOnIncremental>
-        </execute>
-      </action>
-    </pluginExecution>
-    <pluginExecution>
-      <pluginExecutionFilter>
-        <groupId>com.blackbuild.maven.plugins</groupId>
-        <artifactId>copyfolder-maven-plugin</artifactId>
-        <versionRange>[0.0.1,)</versionRange>
-        <goals>
           <goal>consume-source</goal>
           <goal>consume-resource</goal>
+          <goal>consume</goal>
         </goals>
       </pluginExecutionFilter>
       <action>

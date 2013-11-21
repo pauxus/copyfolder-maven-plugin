@@ -21,7 +21,10 @@ import java.util.Set;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.IMaven;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionBuildParticipant;
@@ -31,6 +34,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  * TODO Replace with class description.
  */
 public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
+
+    static final String MAPPING_QNAME = "com.blackbuild.maven.m2e.copyfolder.mapping";
 
     public ProviderBuildParticipant(MojoExecution execution) {
         super(execution, true);
@@ -43,28 +48,24 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
 
         List<Object> mojo = maven.getMojoParameterValue(getSession().getCurrentProject(), getMojoExecution(), "resources", List.class, monitor);
         
-        Properties provisionFolders = resolveResources(mojo, getSession().getCurrentProject().getBasedir(), buildContext);
-        
-        File output = new File(getSession().getCurrentProject().getBuild().getDirectory(), "copyfolders.m2e.provider.properties");
-        
-        provisionFolders.store(new FileWriter(output), "Created by m2e-copyfolder plugin");
-        
-        buildContext.refresh(output);
+        storeResolveResources(mojo, getSession().getCurrentProject().getBasedir(), buildContext);
         
         return null; 
     }
     
-    public Properties resolveResources(List<Object> resources, File basedir, BuildContext buildContext) throws MojoExecutionException {
-        Properties result = new Properties();
+    public void storeResolveResources(List<Object> resources, File basedir, BuildContext buildContext) throws CoreException, MojoExecutionException {
+        IProject project = getMavenProjectFacade().getProject();
         
         for (Object rawResource : resources) {
-            Resource resource = Resource.fromObject(rawResource);
+            RResource resource = RResource.fromObject(rawResource);
             
             
             if (resource.isSimpleResource()) {
                 File folder = new File(basedir, resource.getFolder());
-                result.put(resource.getClassifier() != null ? resource.getClassifier() : folder.getName(), new File(basedir, resource.getFolder()).getAbsolutePath());
-                buildContext.refresh(folder);
+                String classifier = resource.getClassifier() != null ? resource.getClassifier() : folder.getName();
+
+                project.setSessionProperty(new QualifiedName(MAPPING_QNAME, classifier), Path.fromOSString(folder.getAbsolutePath()));
+                
                 continue;
             }
             
@@ -80,13 +81,10 @@ public class ProviderBuildParticipant extends MojoExecutionBuildParticipant {
                 if (actualFolder.isFile()) {
                     throw new MojoExecutionException("Matched folder " + actualFolder + " must be a directory.");
                 }
-                
-                result.put(resource.getClassifier().replace("*", matchedResource), actualFolder.getAbsolutePath());
-                buildContext.refresh(actualFolder);
+
+                project.setSessionProperty(new QualifiedName(MAPPING_QNAME, resource.getClassifier().replace("*", matchedResource)), Path.fromOSString(actualFolder.getAbsolutePath()));
             }
         }
-        
-        return result;
     }
 
 }
