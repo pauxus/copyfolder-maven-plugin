@@ -173,10 +173,10 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
             Copy copy = new Copy();
             copy.setProject(AntHelper.createProject());
             copy.setTodir(getTargetFolder());
-            FileSet source = new FileSet();
-            source.setDir(target.getFolder());
+            FileSet copySource = new FileSet();
+            copySource.setDir(target.getFolder());
 
-            copy.addFileset(source);
+            copy.addFileset(copySource);
 
             copy.execute();
         }
@@ -244,9 +244,9 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     }
 
     private MavenProject findSourceProject(Artifact artifact) {
-        for (MavenProject project : session.getProjects()) {
-            if (projectMatchesArtifact(project, artifact))
-                return project;
+        for (MavenProject sessionProject : session.getProjects()) {
+            if (projectMatchesArtifact(sessionProject, artifact))
+                return sessionProject;
         }
 
         return null;

@@ -58,6 +58,11 @@ public class SourceConsumerMojo extends AbstractConsumerMojo {
     
     @Override
     protected void addNewFolderToMavenModel() {
+        if (realTargetFolder == null) {
+            getLog().warn("Target folder is null, not adding anything!");
+            return;
+        }
+        
         this.project.addCompileSourceRoot(realTargetFolder.getPath());
         getLog().info("Source directory: '" + outputDirectory + "' added.");
         

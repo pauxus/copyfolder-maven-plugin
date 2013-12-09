@@ -27,33 +27,38 @@ import org.apache.maven.project.MavenProjectHelper;
  */
 @Mojo(name = "consume-resource", aggregator = false, defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
 public class ResourceConsumerMojo extends AbstractConsumerMojo {
-    
+
     /**
      * Where should the files be copied to.
      */
-    @Parameter(defaultValue="${project.build.directory}/generated-resources/consumer")
+    @Parameter(defaultValue = "${project.build.directory}/generated-resources/consumer")
     private File outputDirectory;
-    
-    @Parameter(defaultValue="true")
+
+    @Parameter(defaultValue = "true")
     private boolean linkFolders;
-    
+
     @Override
     protected File getTargetFolder() {
         return outputDirectory;
     }
-    
+
     @Override
     protected boolean linkFoldersIfPossible() {
         return linkFolders;
     }
-    
+
     @Component
     private MavenProjectHelper projectHelper;
-    
+
     @Override
     protected void addNewFolderToMavenModel() {
+        if (realTargetFolder == null) {
+            getLog().warn("Target folder is null, not adding anything!");
+            return;
+        }
+        
         projectHelper.addResource(project, realTargetFolder.getPath(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         getLog().info("Resource directory: '" + outputDirectory + "' added.");
     }
-    
+
 }
