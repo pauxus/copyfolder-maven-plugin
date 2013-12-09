@@ -140,15 +140,17 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     private void copyOrLinkFromReactorProject(MavenProject reactorProject) throws MojoExecutionException {
         for (PluginExecution execution : reactorProject.getPlugin(descriptor.getPluginLookupKey()).getExecutions()) {
-            if (!execution.getGoals().contains("provide"))
+            if (!execution.getGoals().contains("provide")) {
                 continue;
+            }
 
             getLog().info("Consuming files provided by " + execution.getId());
 
             Xpp3Dom configuration = (Xpp3Dom) execution.getConfiguration();
 
-            if (configuration == null)
+            if (configuration == null) {
                 continue;
+            }
 
             ResolvedResource target = findResourceWithClassifier(configuration.getChild("resources"),
                     reactorProject.getBasedir());
@@ -192,8 +194,9 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         List<ResolvedResource> resolvedResources = resolveResources(sourceResource, basedir);
 
         for (ResolvedResource resolvedResource : resolvedResources) {
-            if (resolvedResource.getClassifier().equals(classifier))
+            if (resolvedResource.getClassifier().equals(classifier)) {
                 return resolvedResource;
+            }
         }
 
         throw new MojoExecutionException("No resource with classifier '" + classifier + "' found.");
@@ -202,8 +205,9 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     private Resource nodeToResource(Xpp3Dom resource) {
         Resource result = new Resource();
         result.setFolder(resource.getChild("folder").getValue());
-        if (resource.getChild("classifier") != null)
+        if (resource.getChild("classifier") != null) {
             result.setClassifier(resource.getChild("classifier").getValue());
+        }
         return result;
     }
 
@@ -245,8 +249,9 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
     private MavenProject findSourceProject(Artifact artifact) {
         for (MavenProject sessionProject : session.getProjects()) {
-            if (projectMatchesArtifact(sessionProject, artifact))
+            if (projectMatchesArtifact(sessionProject, artifact)) {
                 return sessionProject;
+            }
         }
 
         return null;
