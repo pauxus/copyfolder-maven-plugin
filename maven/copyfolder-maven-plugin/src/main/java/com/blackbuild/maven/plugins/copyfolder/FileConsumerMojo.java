@@ -28,7 +28,7 @@ public class FileConsumerMojo extends AbstractConsumerMojo {
     /**
      * Where should the files be copied to.
      */
-    @Parameter(defaultValue="${project.build.directory}/consumer")
+    @Parameter(defaultValue = "${project.build.directory}/consumer")
     private File outputDirectory;
     
     @Override
@@ -36,7 +36,7 @@ public class FileConsumerMojo extends AbstractConsumerMojo {
         return outputDirectory;
     }
     
-    @Parameter(defaultValue="false", readonly=true)
+    @Parameter(defaultValue = "false", readonly=true)
     private boolean linkFolders;
 
     @Override
