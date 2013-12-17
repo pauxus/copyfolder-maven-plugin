@@ -14,6 +14,7 @@ package com.blackbuild.maven.plugins.copyfolder;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -120,10 +121,25 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         buildContext.refresh(realTargetFolder);
     }
 
-    private void copyFromPropertiesFolder(File sourceFile) {
+    private void copyFromPropertiesFolder(File sourceFile) throws MojoExecutionException {
         getLog().info("Source is a non-reactor folder, assuming IDE build, checking for properties.");
-        //File propertiesDir = 
         
+        File mappingFile = new File(sourceFile, AbstractProviderMojo.MAPPING_FILE_NAME);
+        
+        if (!mappingFile.isFile()) {
+            throw new MojoExecutionException("IDE Build, but not Mapping file present. You either need to execute the create-mapping goal or install the copyfolder m2e-provider.");
+        }
+        
+        Properties mapping = new Properties();
+        try {
+            mapping.load(new FileInputStream(mappingFile));
+        } catch (IOException e) {
+            throw new MojoExecutionException("Could not read Mapping file", e);
+        }
+        
+        File target = new File(sourceFile, mapping.getProperty(classifier));
+        
+        copyOrLinkFolder(target);
     }
 
     private File readSourceFromArtifact(Artifact provided) throws MojoExecutionException {
@@ -162,14 +178,14 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
             ResolvedResource target = findResourceWithClassifier(configuration.getChild("resources"),
                     reactorProject.getBasedir());
 
-            copyOrLinkFolder(target);
+            copyOrLinkFolder(target.getFolder());
         }
     }
 
-    private void copyOrLinkFolder(ResolvedResource target) {
+    private void copyOrLinkFolder(File target) {
         if (linkFoldersIfPossible()) {
-            getLog().info("Only linking source folder (" + target.getFolder() + ").");
-            realTargetFolder = target.getFolder();
+            getLog().info("Only linking source folder (" + target + ").");
+            realTargetFolder = target;
             Delete delete = new Delete();
             delete.setProject(AntHelper.createProject());
             delete.setQuiet(true);
@@ -178,12 +194,12 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
             delete.execute();
             getTargetFolder().mkdirs();
         } else {
-            getLog().info("Copying source folder content (" + target.getFolder() + ").");
+            getLog().info("Copying source folder content (" + target + ").");
             Copy copy = new Copy();
             copy.setProject(AntHelper.createProject());
             copy.setTodir(getTargetFolder());
             FileSet copySource = new FileSet();
-            copySource.setDir(target.getFolder());
+            copySource.setDir(target);
 
             copy.addFileset(copySource);
 

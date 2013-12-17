@@ -17,6 +17,7 @@ import java.io.File;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.taskdefs.Zip.WhenEmpty;
 
@@ -26,6 +27,9 @@ import org.apache.tools.ant.taskdefs.Zip.WhenEmpty;
 @Mojo(name = "provide", aggregator = false, defaultPhase = LifecyclePhase.PACKAGE, threadSafe = true)
 public class ProviderMojo extends AbstractProviderMojo {
 
+    @Parameter(readonly = true, defaultValue="${project.build.directory}")
+    private File targetDirectory;
+    
     protected void packageAndAddResource(ResolvedResource resource) throws MojoExecutionException {
         if (!resource.getFolder().isDirectory()) {
             if (allowMissing) {
@@ -35,7 +39,7 @@ public class ProviderMojo extends AbstractProviderMojo {
             }
         }
         
-        File targetArchive = new File(project.getBuild().getDirectory(), project.getBuild().getFinalName() + "-"
+        File targetArchive = new File(targetDirectory, project.getBuild().getFinalName() + "-"
                 + resource.getClassifier() + ".jar");
     
         Zip zip = new Zip();

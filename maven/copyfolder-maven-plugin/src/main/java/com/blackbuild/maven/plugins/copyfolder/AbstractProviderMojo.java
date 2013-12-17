@@ -12,6 +12,7 @@
  */
 package com.blackbuild.maven.plugins.copyfolder;
 
+import java.io.File;
 import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -24,6 +25,8 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 
 public abstract class AbstractProviderMojo extends AbstractResourceAwareMojo {
+
+    protected static final String MAPPING_FILE_NAME = "META-INF/maven/copyfolder/copyfolder-mappings.properties";
 
     @Component
     protected MavenProject project;
@@ -42,6 +45,12 @@ public abstract class AbstractProviderMojo extends AbstractResourceAwareMojo {
 
     @Component
     protected MavenProjectHelper projectHelper;
+
+    @Parameter(readonly = true, defaultValue = "${project.build.outputDirectory}")
+    protected File classesDir;
+
+    @Parameter(readonly = true, defaultValue = "${project.build.outputDirectory}/" + MAPPING_FILE_NAME)
+    protected File mappingFile;
     
     public void execute() throws MojoExecutionException, MojoFailureException {
 
