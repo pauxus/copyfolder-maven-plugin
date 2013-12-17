@@ -108,7 +108,8 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
         } else if (reactorProject == null) {
-            getLog().info("Source is a non-reactor folder, assuming IDE build, doing nothing.");
+            copyFromPropertiesFolder(sourceFile);
+            
         } else {
             copyOrLinkFromReactorProject(reactorProject);
         }
@@ -117,6 +118,12 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         
         buildContext.refresh(getTargetFolder());
         buildContext.refresh(realTargetFolder);
+    }
+
+    private void copyFromPropertiesFolder(File sourceFile) {
+        getLog().info("Source is a non-reactor folder, assuming IDE build, checking for properties.");
+        //File propertiesDir = 
+        
     }
 
     private File readSourceFromArtifact(Artifact provided) throws MojoExecutionException {

@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.blackbuild.maven.plugins.it</groupId>
+	<artifactId>provide-test</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<description>
+        Test the myproject-maven-plugin:do-something goal.
+    </description>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.blackbuild.maven.plugins</groupId>
+				<artifactId>copyfolder-maven-plugin</artifactId>
+				<version>@project.version@</version>
+
+				<executions>
+					<execution>
+						<goals>
+							<goal>create-mapping</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<folder>target/test-classes/sub1</folder>
+									<classifier>sub1</classifier>
+								</resource>
+								<resource>
+									<folder>target/test-classes/sub2</folder>
+									<classifier>namedsub</classifier>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
