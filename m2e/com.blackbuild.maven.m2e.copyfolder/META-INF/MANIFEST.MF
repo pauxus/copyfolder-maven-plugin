@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: m2e connector for copyfolder-maven-plugin
 Bundle-SymbolicName: com.blackbuild.maven.m2e.copyfolder;singleton:=true
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 0.3.0.qualifier
 Bundle-Vendor: Blackbuild
 Bundle-RequiredExecutionEnvironment: J2SE-1.5,
  JavaSE-1.6
