@@ -5,7 +5,7 @@
       <pluginExecutionFilter>
         <groupId>com.blackbuild.maven.plugins</groupId>
         <artifactId>copyfolder-maven-plugin</artifactId>
-        <versionRange>[0.0.1,)</versionRange>
+        <versionRange>[0.2.3,0.2.9)</versionRange>
         <goals>
           <goal>provide</goal>
         </goals>
@@ -20,7 +20,50 @@
       <pluginExecutionFilter>
         <groupId>com.blackbuild.maven.plugins</groupId>
         <artifactId>copyfolder-maven-plugin</artifactId>
-        <versionRange>[0.0.1,)</versionRange>
+        <versionRange>[0.2.9,)</versionRange>
+        <goals>
+          <goal>create-mapping</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+  		<execute/>
+      </action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.2.9,)</versionRange>
+        <goals>
+          <goal>provide</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+  		<ignore/>
+      </action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.2.3,0.2.9)</versionRange>
+        <goals>
+          <goal>consume-source</goal>
+          <goal>consume-resource</goal>
+          <goal>consume</goal>
+        </goals>
+      </pluginExecutionFilter>
+      <action>
+          <configurator>
+             <id>com.blackbuild.maven.m2e.copyfolder.legacy.consumerConfigurator</id>
+           </configurator>
+      </action>
+    </pluginExecution>
+    <pluginExecution>
+      <pluginExecutionFilter>
+        <groupId>com.blackbuild.maven.plugins</groupId>
+        <artifactId>copyfolder-maven-plugin</artifactId>
+        <versionRange>[0.2.9,)</versionRange>
         <goals>
           <goal>consume-source</goal>
           <goal>consume-resource</goal>
@@ -33,8 +76,5 @@
            </configurator>
       </action>
     </pluginExecution>
-
-
-
   </pluginExecutions>
 </lifecycleMappingMetadata>

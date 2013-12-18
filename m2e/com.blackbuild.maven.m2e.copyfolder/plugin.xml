@@ -7,12 +7,17 @@
    <extension
          point="org.eclipse.m2e.core.projectConfigurators">
       <configurator
+            class="com.blackbuild.maven.m2e.copyfolder.legacy.ConsumerProjectConfigurator"
+            id="com.blackbuild.maven.m2e.copyfolder.legacy.consumerConfigurator"
+            name="CopyFolder Configurator">
+      </configurator>
+      <configurator
             class="com.blackbuild.maven.m2e.copyfolder.ConsumerProjectConfigurator"
             id="com.blackbuild.maven.m2e.copyfolder.consumerConfigurator"
             name="CopyFolder Configurator">
       </configurator>
       <configurator
-            class="com.blackbuild.maven.m2e.copyfolder.ProviderProjectConfigurator"
+            class="com.blackbuild.maven.m2e.copyfolder.legacy.ProviderProjectConfigurator"
             id="com.blackbuild.maven.m2e.copyfolder.providerConfigurator"
             name="CopyFolder Provider Configurator">
       </configurator>

@@ -1,4 +1,4 @@
-package com.blackbuild.maven.m2e.copyfolder;
+package com.blackbuild.maven.m2e.copyfolder.legacy;
 
 import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.core.runtime.CoreException;

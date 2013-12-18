@@ -10,7 +10,7 @@
  * Copyright: (C) DAIMLER 2013, all rights reserved
  * _____________________________________________________________________________
  */
-package com.blackbuild.maven.m2e.copyfolder;
+package com.blackbuild.maven.m2e.copyfolder.legacy;
 
 import java.io.File;
 import java.io.FileWriter;

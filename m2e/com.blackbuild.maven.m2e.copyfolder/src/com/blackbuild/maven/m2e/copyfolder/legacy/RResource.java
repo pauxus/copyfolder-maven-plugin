@@ -1,4 +1,4 @@
-package com.blackbuild.maven.m2e.copyfolder;
+package com.blackbuild.maven.m2e.copyfolder.legacy;
 
  
 public class RResource {
