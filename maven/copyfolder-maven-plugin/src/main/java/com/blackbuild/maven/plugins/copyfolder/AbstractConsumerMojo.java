@@ -127,7 +127,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         File mappingFile = new File(sourceFile, AbstractProviderMojo.MAPPING_FILE_NAME);
         
         if (!mappingFile.isFile()) {
-            throw new MojoExecutionException("IDE Build, but not Mapping file present. You either need to execute the create-mapping goal or install the copyfolder m2e-provider.");
+            throw new MojoExecutionException("IDE Build, but not Mapping file present. You need to execute the create-mapping goal.");
         }
         
         Properties mapping = new Properties();
