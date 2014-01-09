@@ -204,6 +204,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
             copy.addFileset(copySource);
 
             copy.execute();
+            this.realTargetFolder = getTargetFolder();
         }
     }
 
