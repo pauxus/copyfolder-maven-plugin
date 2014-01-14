@@ -10,13 +10,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IClasspathContainer;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.core.ClasspathEntry;
-import org.eclipse.m2e.core.internal.M2EUtils;
 import org.eclipse.m2e.core.lifecyclemapping.model.IPluginExecutionMetadata;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.MavenProjectChangedEvent;
@@ -25,10 +18,6 @@ import org.eclipse.m2e.core.project.configurator.ILifecycleMappingConfiguration;
 import org.eclipse.m2e.core.project.configurator.MojoExecutionKey;
 import org.eclipse.m2e.core.project.configurator.ProjectConfigurationRequest;
 import org.eclipse.m2e.jdt.AbstractSourcesGenerationProjectConfigurator;
-import org.eclipse.m2e.jdt.IClasspathDescriptor;
-import org.eclipse.m2e.jdt.IClasspathManager;
-import org.eclipse.m2e.jdt.internal.ClasspathEntryDescriptor;
-import org.eclipse.m2e.jdt.internal.MavenClasspathHelpers;
 
 public class ConsumerProjectConfigurator extends AbstractSourcesGenerationProjectConfigurator {
     
@@ -38,26 +27,6 @@ public class ConsumerProjectConfigurator extends AbstractSourcesGenerationProjec
                                                          IPluginExecutionMetadata executionMetadata )
     {
         return new CopyFolderBuildParticipant( execution );
-    }
-    
-    
-    @Override
-    public void configureRawClasspath(ProjectConfigurationRequest request, IClasspathDescriptor classpath,
-            IProgressMonitor monitor) throws CoreException {
-        super.configureRawClasspath(request, classpath, monitor);
-        
-        if (!projecthasClasspathContainer(classpath)) {
-            classpath.addEntry(JavaCore.newContainerEntry(new Path(IClasspathManager.CONTAINER_ID)));
-        }
-    }
-
-    private boolean projecthasClasspathContainer(IClasspathDescriptor classpath) {
-        for (IClasspathEntry entry : classpath.getEntries()) {
-            if (entry.getPath().equals(IClasspathManager.CONTAINER_ID)) {
-                return true;
-            }
-        }
-        return false;
     }
     
     @Override
