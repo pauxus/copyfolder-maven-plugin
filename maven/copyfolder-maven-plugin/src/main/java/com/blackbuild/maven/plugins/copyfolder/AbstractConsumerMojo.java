@@ -80,7 +80,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     private String source;
 
     /**
-     * Classifier of the resource to consume.
+     * Classifier of the resource to consume. Can be "-" to indicate main artifact
      */
     @Parameter(required = true)
     private String classifier;
@@ -89,7 +89,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
         Dependency baseArtifact = findMatchingArtifact();
 
-        Artifact provided = new DefaultArtifact(baseArtifact.getGroupId(), baseArtifact.getArtifactId(), classifier,
+        Artifact provided = new DefaultArtifact(baseArtifact.getGroupId(), baseArtifact.getArtifactId(), classifier.equals("-") ? null : classifier,
                 "jar", baseArtifact.getVersion());
 
         MavenProject reactorProject = findSourceProject(provided);
@@ -108,9 +108,11 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
         if (sourceFile.isFile()) {
             copyFromArtifact(sourceFile);
+        } else if (classifier.equals("-")) {
+            getLog().info("Target artifact is main artifact, using classes folder");
+            copyOrLinkFolder(sourceFile);
         } else if (reactorProject == null) {
             copyFromPropertiesFolder(sourceFile);
-            
         } else {
             copyOrLinkFromReactorProject(reactorProject);
         }
@@ -218,7 +220,8 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         List<ResolvedResource> resolvedResources = resolveResources(sourceResource, basedir);
 
         for (ResolvedResource resolvedResource : resolvedResources) {
-            if (resolvedResource.getClassifier().equals(classifier)) {
+            String otherClassifier = resolvedResource.getClassifier();
+            if (otherClassifier == null && classifier == null || otherClassifier.equals(classifier)) {
                 return resolvedResource;
             }
         }
