@@ -1,6 +1,9 @@
 package com.blackbuild.maven.plugins.copyfolder;
 
+import static java.text.MessageFormat.*;
+
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FilenameUtils;
@@ -90,8 +93,7 @@ public class ResourceUtils {
             if ((ff.exists()) && (ff.isFile()))
                 return ff.getAbsolutePath();
             else
-                throw new IllegalArgumentException("No common path element found for '" + normalizedTargetPath
-                        + "' and '" + normalizedBasePath + "'");
+                throw new IllegalArgumentException(format("No common path element found for ''{0}'' and ''{1}''", normalizedTargetPath, normalizedBasePath));
         }
         // The number of directories we have to backtrack depends on whether the base is a file or a dir
         // For example, the relative path from

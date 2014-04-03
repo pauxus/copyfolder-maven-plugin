@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.PluginExecution;
@@ -120,7 +121,6 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         addNewFolderToMavenModel();
         
         buildContext.refresh(getTargetFolder());
-        buildContext.refresh(realTargetFolder);
     }
 
     private void copyFromPropertiesFolder(File sourceFile) throws MojoExecutionException {
@@ -133,10 +133,14 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         }
         
         Properties mapping = new Properties();
+        FileInputStream inStream = null;
         try {
-            mapping.load(new FileInputStream(mappingFile));
+            inStream = new FileInputStream(mappingFile);
+            mapping.load(inStream);
         } catch (IOException e) {
             throw new MojoExecutionException("Could not read Mapping file", e);
+        } finally {
+            IOUtils.closeQuietly(inStream);
         }
         
         File target = new File(sourceFile, mapping.getProperty(classifier));
@@ -221,7 +225,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
         for (ResolvedResource resolvedResource : resolvedResources) {
             String otherClassifier = resolvedResource.getClassifier();
-            if (otherClassifier == null && classifier == null || otherClassifier.equals(classifier)) {
+            if ((otherClassifier == null && classifier == null) || otherClassifier.equals(classifier)) {
                 return resolvedResource;
             }
         }

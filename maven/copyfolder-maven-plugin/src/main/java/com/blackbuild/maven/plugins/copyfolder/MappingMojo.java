@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -39,10 +40,14 @@ public class MappingMojo extends AbstractProviderMojo {
         mapping = new Properties();
 
         if (mappingFile.isFile()) {
+            FileInputStream fileInputStream = null;
             try {
-                mapping.load(new FileInputStream(mappingFile));
+                fileInputStream = new FileInputStream(mappingFile);
+                mapping.load(fileInputStream);
             } catch (IOException e) {
                 throw new MojoExecutionException("Could not load existing mapping file", e);
+            } finally {
+                IOUtils.closeQuietly(fileInputStream);
             }
         } else {
             mappingFile.getParentFile().mkdirs();
@@ -50,10 +55,14 @@ public class MappingMojo extends AbstractProviderMojo {
 
         super.execute();
 
+        FileOutputStream fileOutputStream = null;
         try {
-            mapping.store(new FileOutputStream(mappingFile), "");
+            fileOutputStream = new FileOutputStream(mappingFile);
+            mapping.store(fileOutputStream, "");
         } catch (IOException e) {
             throw new MojoExecutionException("Could not create mapping file", e);
+        } finally {
+            IOUtils.closeQuietly(fileOutputStream);
         }
     }
 
