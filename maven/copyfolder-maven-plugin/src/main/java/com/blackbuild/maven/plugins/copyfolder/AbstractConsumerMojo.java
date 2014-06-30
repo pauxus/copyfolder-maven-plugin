@@ -22,6 +22,15 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.factory.ArtifactFactory;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionException;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
+import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
+import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.PluginExecution;
@@ -31,18 +40,12 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.tools.ant.taskdefs.Copy;
 import org.apache.tools.ant.taskdefs.Delete;
 import org.apache.tools.ant.taskdefs.Expand;
 import org.apache.tools.ant.types.FileSet;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.RepositorySystemSession;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.ArtifactRequest;
-import org.sonatype.aether.resolution.ArtifactResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
@@ -53,24 +56,42 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
     @Component
     private MavenSession session;
 
+    /**
+     * Used to look up Artifacts in the remote repository.
+     */
     @Component
-    private RepositorySystem repoSystem;
+    protected ArtifactFactory factory;
+
+    /**
+     * Used to look up Artifacts in the remote repository.
+     */
+    @Component
+    protected ArtifactResolver resolver;
+
+    @Parameter( defaultValue = "${project.remoteArtifactRepositories}", readonly = true, required = true )
+    protected List<ArtifactRepository> remoteRepos;
+
+    /**
+     * Location of the local repository.
+     */
+    @Parameter( defaultValue = "${localRepository}", readonly = true, required = true )
+    private ArtifactRepository local;
 
     @Component
     private PluginDescriptor descriptor;
-    
+
     @Component
     private BuildContext buildContext;
-    
-    @Parameter(readonly = true, defaultValue = "${repositorySystemSession}")
-    private RepositorySystemSession repoSession;
 
-    @Parameter(readonly = true, defaultValue = "${project.remoteProjectRepositories}")
-    private List<RemoteRepository> remoteRepos;
+//    @Parameter(readonly = true, defaultValue = "${repositorySystemSession}")
+//    private RepositorySystemSession repoSession;
+//
+//    @Parameter(readonly = true, defaultValue = "${project.remoteProjectRepositories}")
+//    private List<RemoteRepository> remoteRepos;
 
     @Parameter(defaultValue = "consumer.link.path")
     private File linkMarkerProperty;
-    
+
     protected File realTargetFolder;
 
     /**
@@ -90,8 +111,7 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
 
         Dependency baseArtifact = findMatchingArtifact();
 
-        Artifact provided = new DefaultArtifact(baseArtifact.getGroupId(), baseArtifact.getArtifactId(), classifier.equals("-") ? null : classifier,
-                "jar", baseArtifact.getVersion());
+        Artifact provided = factory.createArtifactWithClassifier(baseArtifact.getGroupId(), baseArtifact.getArtifactId(), baseArtifact.getVersion(), "jar", classifier.equals("-") ? null : classifier);
 
         MavenProject reactorProject = findSourceProject(provided);
 
@@ -119,19 +139,19 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         }
 
         addNewFolderToMavenModel();
-        
+
         buildContext.refresh(getTargetFolder());
     }
 
     private void copyFromPropertiesFolder(File sourceFile) throws MojoExecutionException {
         getLog().info("Source is a non-reactor folder, assuming IDE build, checking for properties.");
-        
+
         File mappingFile = new File(sourceFile, AbstractProviderMojo.MAPPING_FILE_NAME);
-        
+
         if (!mappingFile.isFile()) {
             throw new MojoExecutionException("IDE Build, but not Mapping file present. You need to execute the create-mapping goal.");
         }
-        
+
         Properties mapping = new Properties();
         FileInputStream inStream = null;
         try {
@@ -142,19 +162,19 @@ public abstract class AbstractConsumerMojo extends AbstractResourceAwareMojo {
         } finally {
             IOUtils.closeQuietly(inStream);
         }
-        
+
         File target = new File(sourceFile, mapping.getProperty(classifier));
-        
+
         copyOrLinkFolder(target);
     }
 
     private File readSourceFromArtifact(Artifact provided) throws MojoExecutionException {
-        try {
-            return repoSystem.resolveArtifact(repoSession, new ArtifactRequest(provided, remoteRepos, null))
-                    .getArtifact().getFile();
-        } catch (ArtifactResolutionException e) {
-            throw new MojoExecutionException(e.getMessage(), e);
-        }
+            ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+            request.setArtifact(provided);
+            request.setRemoteRepositories(remoteRepos);
+            request.setLocalRepository(local);
+            ArtifactResolutionResult result = resolver.resolve(request);
+            return provided.getFile();
     }
 
     private File readSourceFromReactor(MavenProject reactorProject) {
